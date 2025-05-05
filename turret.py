@@ -22,10 +22,17 @@ class Turret(pg.sprite.Sprite):
         self.update_time = pg.time.get_ticks()
         
         #update image
-    
         self.image = self.animation_list[self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
+        #create transparent cicle showing range
+        self.range_image = pg.Surface((self.range * 2, self.range *2 ))
+        self.range_image.fill((0, 0, 0))
+        self.range_image.set_colorkey((0, 0, 0))
+        pg.draw.circle(self.range_image, "grey100", (self.range, self.range), self.range)
+        self.range_image.set_alpha(100)#<change numebr to change transparecy
+        self.range_rect = self.range_image.get_rect()
+        self.range_rect.center = self.rect.center
         
     def load_images(self):
         #extract images from spritesheet
@@ -53,3 +60,7 @@ class Turret(pg.sprite.Sprite):
                 self.frame_index = 0
                 #record completed time and clear target so cooldown can begin
                 self.last_shot = pg.time.get_ticks()
+                
+    def draw(self, surface):
+        surface.blit(self.image, self.range_rect)
+        surface.blit(self.range_image, self.range_rect)
