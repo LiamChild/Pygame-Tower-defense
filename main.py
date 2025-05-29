@@ -1,10 +1,13 @@
 import pygame as pg
 import json
+import tkinter as tk
+from tkinter import simpledialog
 from enemy import Enemy
 from world import World
 from turret import Turret
 from button import Button
 import constants as c
+import game as G
 
 
 
@@ -26,7 +29,9 @@ last_enemy_spawn = pg.time.get_ticks()
 placing_turrets = False
 selected_turret = None 
 
- 
+#load highscores
+# highscores = G.load_highscores()
+
 #load images
 #map
 map_image = pg.image.load('Levels/levels.png').convert_alpha()
@@ -42,7 +47,8 @@ enemy_images = {
     "weak": pg.image.load('assets/images/enemies/enemy_1.png').convert_alpha(),
     "medium": pg.image.load('assets/images/enemies/enemy_2.png').convert_alpha(),
     "strong": pg.image.load('assets/images/enemies/enemy_3.png').convert_alpha(),
-    "elite": pg.image.load('assets/images/enemies/enemy_4.png').convert_alpha()
+    "elite": pg.image.load('assets/images/enemies/enemy_4.png').convert_alpha(),
+    "boss": pg.image.load('assets/images/enemies/enemy_5.png').convert_alpha()
 }
 enemy_image = pg.image.load('assets/images/enemies/enemy_1.png').convert_alpha()
 #buttons
@@ -57,7 +63,7 @@ heart_image = pg.image.load('assets/images/gui/heart.png').convert_alpha()
 coin_image = pg.image.load('assets/images/gui/coin.png').convert_alpha()
 logo_image = pg.image.load('assets/images/gui/logo.png').convert_alpha()
 #load sounds
-shot_fx = pg.mixer.Sound('assets/audio/shot.wav')
+shot_fx = pg.mixer.Sound('assets/audio/pew.wav')
 shot_fx.set_volume(0.5)
 
 
@@ -132,11 +138,41 @@ turret_button = Button(c.SCREEN_WIDTH + 30, 120, buy_turret_image, True)
 cancel_button = Button(c.SCREEN_WIDTH + 50, 180, cancel_image, True)
 upgrade_button = Button(c.SCREEN_WIDTH + 5, 180, upgrade_turret_image, True)
 begin_button = Button(c.SCREEN_WIDTH + 60, 300, begin_image, True)
-restart_button = Button(310, 300, restart_image, True)
+restart_button = Button(310, 550, restart_image, True)
 fast_forward_button = Button(c.SCREEN_WIDTH + 50, 300, fast_forward_image, False)
 
+def getName():
+    def save_name():
+        nonlocal player_name
+        player_name = name_entry.get()
+        root.destroy()
+    #show tkinter window to get the name of the player
+    player_name = "Player"
+    root = tk.Tk()
+    root.title("Enter Name")
+    root.geometry("300x150")
+    
+    label = tk.Label(root, text="Player Name:")
+    label.pack(pady=5)
 
+    name_entry = tk.Entry(root)
+    name_entry.pack(pady=5)
+
+    save_button = tk.Button(root, text="Save Name", command=save_name)
+    save_button.pack(pady=5)
+    
+    root.mainloop()
+    return player_name
+
+    
+    # read the highscores
+    
+    # store that in memory
+    
+    # display the highscores
+    
 #game loop
+player_name = getName()
 run = True
 while run:
     
@@ -149,10 +185,12 @@ while run:
     if game_over == False:
         #check if player has lost
         if world.health <= 0:
+            G.add_score_to_highscore(player_name, world.level)
             game_over = True
             game_outcome = -1 #loss
         #check if player has won
         if world.level > c.TOTAL_LEVELS:
+            G.add_score_to_highscore(player_name, world.level) 
             game_over = True
             game_outcome = 1 #win
     
@@ -179,9 +217,7 @@ while run:
     display_data()
     
     
-   
-        
-    
+
     if game_over == False:
         #check if the level has been started or not
         if level_started == False:
@@ -241,11 +277,24 @@ while run:
                         selected_turret.upgrade()
                         world.money -= c.UPGRADE_COST
     else:
-        pg.draw.rect(screen, "dodgerblue", (200, 200, 400, 200), border_radius = 30)
+        pg.draw.rect(screen, "dodgerblue", (200, 200, 400, 500), border_radius = 30)
         if game_outcome == -1:
-            draw_text("GAME OVER!", large_font, "grey0", 310, 230)
+            draw_text("GAME OVER!", large_font, "grey0", 310, 220)
         elif game_outcome == 1:
             draw_text("YOU WIN!", large_font, "grey0", 315, 230)
+        #Display current player's score
+        draw_text(f"Your Score: {world.level}", text_font, "grey0", 315, 250)
+        #Display current players score using world.level
+        draw_text("Highscores:", text_font, "grey0", 315, 280)
+        y_offset = 310
+        highscores = G.load_highscores()
+        highscores = dict(sorted(highscores.items(), key=lambda item: item[1], reverse=True))  # Sort highscores in descending order
+        for name, score in highscores.items():
+            draw_text(f"{name}: {score}", text_font, "grey0", 315, y_offset)
+            y_offset += 30
+        
+        
+        
 
         #restart level
         if restart_button.draw(screen):
@@ -254,13 +303,13 @@ while run:
             placing_turrets = False
             selected_turret = None
             last_enemy_spawn = pg.time.get_ticks()
-            world = World(world_data, map_image)
-            world.process_data()
-            world.process_enemies()
             #empty groups
             enemy_group.empty()
             turret_group.empty()
-
+            world = World(world_data, map_image)
+            world.process_data()
+            world.process_enemies()
+            
             
         
     #event handler
@@ -284,5 +333,13 @@ while run:
                     selected_turret = select_turret(mouse_pos)
 #update display
     pg. display.flip()
+         
+# update the highscores
+
+# check if current score is higher than the lowest score
+
+# save the highscores back to the file
+
+
             
 pg.quit()

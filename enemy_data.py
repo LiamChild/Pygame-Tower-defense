@@ -4,7 +4,8 @@ ENEMY_SPAWN_DATA = [
     "weak": 15,
     "medium": 0,
     "strong": 0,
-    "elite": 0
+    "elite": 0,
+    "boss": 0
   },
   {
     #2
@@ -53,7 +54,9 @@ ENEMY_SPAWN_DATA = [
     "weak": 10,
     "medium": 20,
     "strong": 15,
-    "elite": 0
+    "elite": 0,
+    "boss": 1
+    
   },
   {
     #9
@@ -122,5 +125,9 @@ ENEMY_DATA = {
     "elite": {
     "health": 30,
     "speed": 6
-  }
+  },
+    "boss": {
+    "health": 40,
+    "speed": 7
+  }                                            
 }
